@@ -1,0 +1,9 @@
+xyz\kbws\entity\po\UserInfo.class
+xyz\kbws\entity\query\SimplePage.class
+xyz\kbws\service\UserInfoService.class
+xyz\kbws\service\impl\UserInfoServiceImpl.class
+xyz\kbws\entity\vo\PaginationResultVO.class
+xyz\kbws\mapper\UserInfoMapper.class
+xyz\kbws\entity\query\UserInfoQuery.class
+xyz\kbws\mapper\BaseMapper.class
+xyz\kbws\entity\query\BaseQuery.class
