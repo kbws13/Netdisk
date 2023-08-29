@@ -4,18 +4,23 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MemberSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import xyz.kbws.annotation.GlobalInterceptor;
 import xyz.kbws.annotation.VerifyParam;
+import xyz.kbws.entity.constants.Constants;
+import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.enums.ResponseCodeEnum;
 import xyz.kbws.exception.BusinessException;
 import xyz.kbws.utils.StringTools;
 import xyz.kbws.utils.VerifyUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -48,6 +53,12 @@ public class GlobalOperatcionAspect {
                 return;
             }
             /**
+             * 校验登录
+             */
+            if (interceptor.checkLogin() || interceptor.checkAdmin()){
+                checkLogin(interceptor.checkAdmin());
+            }
+            /**
              * 校验参数
              */
             if (interceptor.checkParams()){
@@ -62,6 +73,18 @@ public class GlobalOperatcionAspect {
         }catch (Throwable e){
             logger.error("全局拦截器异常{}",e);
             throw new BusinessException(ResponseCodeEnum.CODE_500);
+        }
+    }
+
+    private void checkLogin(Boolean checkAdmin){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        HttpSession session = request.getSession();
+        SessionWebUserDto sessionWebUserDto = (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
+        if (sessionWebUserDto == null){
+            throw new BusinessException(ResponseCodeEnum.CODE_901);
+        }
+        if (checkAdmin&&!sessionWebUserDto.getAdmin()){
+            throw new BusinessException(ResponseCodeEnum.CODE_404);
         }
     }
 
