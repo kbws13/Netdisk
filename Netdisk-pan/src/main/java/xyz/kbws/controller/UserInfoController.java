@@ -72,7 +72,7 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/sendEmailCode")
-	@GlobalInterceptor(checkParams = true)
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
 	public ResponseVO sendEmailCode(HttpSession session,
 									@VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
 									@VerifyParam(required = true) String checkCode,
@@ -89,7 +89,7 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/register")
-	@GlobalInterceptor(checkParams = true)
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
 	public ResponseVO register(HttpSession session,
 							   @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
 							   @VerifyParam(required = true) String nickName,
@@ -108,7 +108,7 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/login")
-	@GlobalInterceptor(checkParams = true)
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
 	public ResponseVO login(HttpSession session,
 							   @VerifyParam(required = true) String email,
 							   @VerifyParam(required = true) String password,
@@ -126,7 +126,7 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/resetPwd")
-	@GlobalInterceptor(checkParams = true)
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
 	public ResponseVO resetPwd(HttpSession session,
 							   @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
 							   @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password,
@@ -144,7 +144,7 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/getAvatar/{userId}")
-	@GlobalInterceptor(checkParams = true)
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
 	public void getAvatar(HttpServletResponse response,
 								@VerifyParam(required = true) @PathVariable("userId") String userId) {
 		String avatarFolderName = Constants.FILE_FOLDER_FILE + Constants.FILE_FOLDER_AVATAR_NAME;
@@ -195,7 +195,6 @@ public class UserInfoController extends ABaseController{
 	}
 
 	@RequestMapping("/logout")
-	@GlobalInterceptor(checkParams = true)
 	public ResponseVO logout(HttpSession session){
 		session.invalidate();
 		return getSuccessResponseVO(null);

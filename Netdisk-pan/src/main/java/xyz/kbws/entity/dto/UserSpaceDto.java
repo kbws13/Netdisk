@@ -1,7 +1,10 @@
 package xyz.kbws.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serializable;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserSpaceDto implements Serializable {
     private Long userSpace;
     private Long totalSpace;
