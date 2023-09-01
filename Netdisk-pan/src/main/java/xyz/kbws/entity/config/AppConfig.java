@@ -1,8 +1,10 @@
 package xyz.kbws.entity.config;
 
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component("appConfig")
 public class AppConfig {
     @Value("${spring.mail.username}")
@@ -14,15 +16,26 @@ public class AppConfig {
     @Value("${project.folder:}")
     private String projectFolder;
 
-    public String getAdminEmails() {
-        return adminEmails;
-    }
+    //QQ登录相关
+    @Value("${qq.app.id}")
+    private String qqAppId;
 
-    public String getSendUserName() {
-        return sendUserName;
-    }
+    @Value("${qq.app.key}")
+    private String qqAppKey;
 
-    public String getProjectFolder() {
-        return projectFolder;
-    }
+    @Value("${qq.url.authorization}")
+    private String qqUrlAuthorization;
+
+    @Value("${qq.url.access.token}")
+    private String qqUrlAccessToken;
+
+    @Value("${qq.url.openid}")
+    private String qqUrlOpenId;
+
+    @Value("${qq.url.user.info}")
+    private String qqUrlUserInfo;
+
+    @Value("${qq.url.redirect}")
+    private String qqUrlRedirect;
+
 }

@@ -3,6 +3,8 @@ package xyz.kbws.controller;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -186,7 +188,7 @@ public class UserInfoController extends ABaseController{
 		return getSuccessResponseVO(sessionWebUserDto);
 	}
 
-	@RequestMapping("/getUserSpace")
+	@RequestMapping("/getUseSpace")
 	@GlobalInterceptor(checkParams = true)
 	public ResponseVO getUserSpace(HttpSession session){
 		SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
@@ -233,5 +235,17 @@ public class UserInfoController extends ABaseController{
 		userInfo.setPassword(StringTools.encodingByMd5(password));
 		userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
 		return getSuccessResponseVO(null);
+	}
+
+	@RequestMapping("/qqlogin")
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
+	public ResponseVO qqLogin(HttpSession session, String callbackUrl) throws UnsupportedEncodingException {
+		String state = StringTools.getRandomNumber(Constants.LENGTH_30);
+		if (!StringTools.isEmpty(callbackUrl)){
+			session.setAttribute(state, callbackUrl);
+		}
+		String url = String.format(appConfig.getQqUrlAuthorization(), appConfig.getQqAppId(),
+				URLEncoder.encode(appConfig.getQqUrlRedirect(), "utf-8"), state);
+		return getSuccessResponseVO(url);
 	}
 }
