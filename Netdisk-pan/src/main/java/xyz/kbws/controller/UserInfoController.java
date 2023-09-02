@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -247,5 +250,17 @@ public class UserInfoController extends ABaseController{
 		String url = String.format(appConfig.getQqUrlAuthorization(), appConfig.getQqAppId(),
 				URLEncoder.encode(appConfig.getQqUrlRedirect(), "utf-8"), state);
 		return getSuccessResponseVO(url);
+	}
+
+	@RequestMapping("/qqlogin/callback")
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
+	public ResponseVO qqLoginCallback(HttpSession session, @VerifyParam(required = true) String code,
+									  @VerifyParam(required = true) String state){
+		SessionWebUserDto sessionWebUserDto = userInfoService.qqLogin(code);
+		session.setAttribute(Constants.SESSION_KEY, sessionWebUserDto);
+		Map<String, Object> result = new HashMap<>();
+		result.put("callbackUrl", session.getAttribute(state));
+		result.put("userInfo", sessionWebUserDto);
+		return getSuccessResponseVO(result);
 	}
 }

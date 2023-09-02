@@ -138,4 +138,8 @@ public interface UserInfoService {
 	 * 重置密码
 	 */
 	void resetPwd(String email, String password, String emailCode);
+	/**
+	 * QQ登录
+	 */
+	SessionWebUserDto qqLogin(String code);
 }

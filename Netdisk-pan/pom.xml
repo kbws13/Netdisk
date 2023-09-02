@@ -34,6 +34,7 @@
         <commons.lang3.version>3.4</commons.lang3.version>
         <commons.codec.version>1.9</commons.codec.version>
         <commons.io.version>2.5</commons.io.version>
+        <okhttp3.version>3.2.0</okhttp3.version>
     </properties>
 
     <dependencies>
@@ -128,6 +129,13 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
+        </dependency>
+
+        <!--okhttp-->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp3.version}</version>
         </dependency>
     </dependencies>
 
