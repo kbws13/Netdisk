@@ -4,8 +4,10 @@ import org.slf4j.LoggerFactory;
 import xyz.kbws.entity.constants.Constants;
 import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.enums.ResponseCodeEnum;
+import xyz.kbws.entity.vo.PaginationResultVO;
 import xyz.kbws.entity.vo.ResponseVO;
 import xyz.kbws.exception.BusinessException;
+import xyz.kbws.utils.CopyTools;
 import xyz.kbws.utils.StringTools;
 
 import javax.servlet.http.HttpServletResponse;
@@ -53,6 +55,16 @@ public class ABaseController {
         vo.setInfo(ResponseCodeEnum.CODE_500.getMsg());
         vo.setData(t);
         return vo;
+    }
+
+    protected <S,T>PaginationResultVO<T> convert2PaginationVO(PaginationResultVO<S> result, Class<T> tClass){
+        PaginationResultVO<T> resultVO = new PaginationResultVO<>();
+        resultVO.setList(CopyTools.copyList(result.getList(), tClass));
+        resultVO.setPageNo(result.getPageNo());
+        resultVO.setPageSize(result.getPageSize());
+        resultVO.setPageTotal(result.getPageTotal());
+        resultVO.setTotalCount(result.getTotalCount());
+        return resultVO;
     }
 
     protected void readFile(HttpServletResponse response, String filePath){

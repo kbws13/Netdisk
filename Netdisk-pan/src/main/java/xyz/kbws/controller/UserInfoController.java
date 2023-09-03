@@ -184,12 +184,12 @@ public class UserInfoController extends ABaseController{
 		}
 	}
 
-	@RequestMapping("/getUserInfo")
-	@GlobalInterceptor(checkParams = true)
-	public ResponseVO getUserInfo(HttpSession session){
-		SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
-		return getSuccessResponseVO(sessionWebUserDto);
-	}
+	//@RequestMapping("/getUserInfo")
+	//@GlobalInterceptor(checkParams = true)
+	//public ResponseVO getUserInfo(HttpSession session){
+	//	SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
+	//	return getSuccessResponseVO(sessionWebUserDto);
+	//}
 
 	@RequestMapping("/getUseSpace")
 	@GlobalInterceptor(checkParams = true)
