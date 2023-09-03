@@ -3,7 +3,7 @@ package xyz.kbws.entity.enums;
 public enum UploadStatusEnum {
     UPLOAD_SECONDS("upload_seconds","秒传"),
     UPLOADING("uploading","上传中"),
-    UPLOAD_FINISH("upload_finish","上传中");
+    UPLOAD_FINISH("upload_finish","上传完成");
 
     private String code;
     private String desc;

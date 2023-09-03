@@ -26,7 +26,7 @@ import javax.servlet.http.HttpSession;
  * 文件信息 Controller
  */
 @RestController("fileInfoController")
-@RequestMapping("/fileInfo")
+@RequestMapping("/file")
 public class FileInfoController extends ABaseController{
 
 	@Resource

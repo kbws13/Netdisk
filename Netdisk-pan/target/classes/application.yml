@@ -10,6 +10,10 @@ spring:
   # 配置文件
   profiles:
     active: local
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
   mvc:
     # 异常处理
     throw-exception-if-no-handler-found: true

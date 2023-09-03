@@ -1,15 +1,25 @@
 package xyz.kbws.service.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.kbws.component.RedisComponent;
+import xyz.kbws.entity.config.AppConfig;
 import xyz.kbws.entity.constants.Constants;
 import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.dto.UploadResultDto;
@@ -25,6 +35,7 @@ import xyz.kbws.exception.BusinessException;
 import xyz.kbws.mappers.FileInfoMapper;
 import xyz.kbws.mappers.UserInfoMapper;
 import xyz.kbws.service.FileInfoService;
+import xyz.kbws.utils.DateUtil;
 import xyz.kbws.utils.StringTools;
 
 
@@ -34,12 +45,19 @@ import xyz.kbws.utils.StringTools;
 @Service("fileInfoService")
 public class FileInfoServiceImpl implements FileInfoService {
 
+	private static final Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
+
 	@Resource
 	private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 	@Resource
 	private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
 	@Resource
 	private RedisComponent redisComponent;
+	@Resource
+	private AppConfig appConfig;
+	@Resource
+	@Lazy
+	private FileInfoServiceImpl fileInfoService;
 
 	/**
 	 * 根据条件查询列表
@@ -159,49 +177,132 @@ public class FileInfoServiceImpl implements FileInfoService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file,
-									  String fileName, String filePid, String fileMd5, Integer chunkIndex, Integer chunks) {
+									  String fileName, String filePid, String fileMd5, Integer chunkIndex,
+									  Integer chunks) {
 		UploadResultDto resultDto = new UploadResultDto();
-		if (StringTools.isEmpty(fileId)){
-			fileId = StringTools.getRandomNumber(Constants.LENGTH_10);
-		}
-		resultDto.setFileId(fileId);
-		Date curDate = new Date();
-		UserSpaceDto spaceDto = redisComponent.getUserSpaceUse(webUserDto.getUserId());
+		Boolean uploadSuccess = true;
+		File tempFileFolder = null;
+		try {
+			if (StringTools.isEmpty(fileId)){
+				fileId = StringTools.getRandomString(Constants.LENGTH_10);
+			}
+			resultDto.setFileId(fileId);
+			Date curDate = new Date();
+			UserSpaceDto spaceDto = redisComponent.getUserSpaceUse(webUserDto.getUserId());
 
-		if (chunkIndex == 0){
-			FileInfoQuery infoQuery = new FileInfoQuery();
-			infoQuery.setFileMd5(fileMd5);
-			infoQuery.setSimplePage(new SimplePage(0,1));
-			infoQuery.setStatus(FileStatusEnum.USING.getStatus());
-			List<FileInfo> dbFileList = this.fileInfoMapper.selectList(infoQuery);
-			//秒传
-			if (!dbFileList.isEmpty()){
-				FileInfo dbFile = dbFileList.get(0);
-				//判断文件大小
-				if (dbFile.getFileSize()+spaceDto.getUserSpace() > spaceDto.getTotalSpace()){
-					throw new BusinessException(ResponseCodeEnum.CODE_904);
+			if (chunkIndex == 0) {
+				FileInfoQuery infoQuery = new FileInfoQuery();
+				infoQuery.setFileMd5(fileMd5);
+				infoQuery.setSimplePage(new SimplePage(0, 1));
+				infoQuery.setStatus(FileStatusEnum.USING.getStatus());
+				List<FileInfo> dbFileList = this.fileInfoMapper.selectList(infoQuery);
+				//秒传
+				if (!dbFileList.isEmpty()) {
+					FileInfo dbFile = dbFileList.get(0);
+					//判断文件大小
+					if (dbFile.getFileSize() + spaceDto.getUserSpace() > spaceDto.getTotalSpace()) {
+						throw new BusinessException(ResponseCodeEnum.CODE_904);
+					}
+					dbFile.setFileId(fileId);
+					dbFile.setFilePid(filePid);
+					dbFile.setUserId(webUserDto.getUserId());
+					dbFile.setCreateTime(curDate);
+					dbFile.setLastUpdateTime(curDate);
+					dbFile.setStatus(FileStatusEnum.USING.getStatus());
+					dbFile.setDelFlag(FileDelFlagEnum.USING.getFlag());
+					dbFile.setFileMd5(fileMd5);
+					//文件重命名
+					fileName = autoRename(filePid, webUserDto.getUserId(), fileName);
+					dbFile.setFileName(fileName);
+					this.fileInfoMapper.insert(dbFile);
+					resultDto.setStatus(UploadStatusEnum.UPLOAD_SECONDS.getCode());
+
+					//更新用户使用空间
+					updateUserSpace(webUserDto, dbFile.getFileSize());
+					return resultDto;
 				}
-				dbFile.setFileId(fileId);
-				dbFile.setFilePid(filePid);
-				dbFile.setUserId(webUserDto.getUserId());
-				dbFile.setCreateTime(curDate);
-				dbFile.setLastUpdateTime(curDate);
-				dbFile.setStatus(FileStatusEnum.USING.getStatus());
-				dbFile.setDelFlag(FileDelFlagEnum.USING.getFlag());
-				dbFile.setFileMd5(fileMd5);
-				//文件重命名
-				fileName = autoRename(filePid, webUserDto.getUserId(), fileName);
-				dbFile.setFileName(fileName);
-				this.fileInfoMapper.insert(dbFile);
-				resultDto.setStatus(UploadStatusEnum.UPLOAD_SECONDS.getCode());
+			}
+			//判断磁盘空间
+			Long currentTempSize = redisComponent.getFileTempSize(webUserDto.getUserId(),  fileId);
+			if (file.getSize() + currentTempSize + spaceDto.getUserSpace() > spaceDto.getTotalSpace()){
+				throw new BusinessException(ResponseCodeEnum.CODE_904);
+			}
 
-				//更新用户使用空间
-				updateUserSpace(webUserDto, dbFile.getFileSize());
+			//暂存临时目录
+			String tempFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP;
+			String currentUserFolderName = webUserDto.getUserId() + fileId;
+
+			tempFileFolder = new File(tempFolderName + currentUserFolderName);
+			if (!tempFileFolder.exists()){
+				tempFileFolder.mkdirs();
+			}
+
+			File newFile = new File(tempFileFolder.getPath() + "/" + chunkIndex);
+			file.transferTo(newFile);
+			if (chunkIndex<chunks-1){
+				resultDto.setStatus(UploadStatusEnum.UPLOADING.getCode());
+				//保存临时大小
+				redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
 				return resultDto;
 			}
-		}
 
-		return null;
+			//最后一个文件上传完成，记录数据，异步合并分片
+			String month = DateUtil.format(new Date(), DateTimePatternEnum.YYYYMM.getPattern());
+			String fileSuffix = StringTools.getFileSuffix(fileName);
+			//真实文件名
+			String realFileName = currentUserFolderName + fileSuffix;
+			FileTypeEnum fileTypeEnum = FileTypeEnum.getFileTypeBySuffix(fileSuffix);
+			//自动重命名
+			fileName = autoRename(filePid, webUserDto.getUserId(), fileName);
+
+			FileInfo fileInfo = new FileInfo();
+			fileInfo.setFileId(fileId);
+			fileInfo.setUserId(webUserDto.getUserId());
+			fileInfo.setFileMd5(fileMd5);
+			fileInfo.setFileName(fileName);
+			fileInfo.setFilePath(month + "/" + realFileName);
+			fileInfo.setFilePid(filePid);
+			fileInfo.setCreateTime(curDate);
+			fileInfo.setLastUpdateTime(curDate);
+			fileInfo.setFileCateory(fileTypeEnum.getCategory().getCategory());
+			fileInfo.setFileType(fileTypeEnum.getType());
+			fileInfo.setStatus(FileStatusEnum.TRANSFER.getStatus());
+			fileInfo.setFolderType(FileFolderTypeEnum.FILE.getType());
+			fileInfo.setDelFlag(FileDelFlagEnum.USING.getFlag());
+			this.fileInfoMapper.insert(fileInfo);
+
+			Long totalSize = redisComponent.getFileTempSize(webUserDto.getUserId(), fileId);
+			updateUserSpace(webUserDto, totalSize);
+
+			resultDto.setStatus(UploadStatusEnum.UPLOAD_FINISH.getCode());
+
+			// 在提交事务之后调用方法
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					//直接调用方法并不是异步执行，需要托管给Spring然后调用才是执行异步方法
+					fileInfoService.transferFile(fileInfo.getFileId(), webUserDto);
+				}
+			});
+
+			return resultDto;
+		}catch (BusinessException e){
+			logger.error("文件上传失败",e);
+			uploadSuccess = false;
+			throw e;
+		}catch (Exception e){
+			logger.error("文件上传失败",e);
+			uploadSuccess = false;
+		}finally {
+			if (!uploadSuccess && tempFileFolder!= null){
+				try {
+					FileUtils.deleteDirectory(tempFileFolder);
+				} catch (IOException e) {
+					logger.error("删除临时目录失败",e);
+				}
+			}
+		}
+		return resultDto;
 	}
 
 	/**
@@ -235,5 +336,15 @@ public class FileInfoServiceImpl implements FileInfoService {
 		UserSpaceDto spaceDto = redisComponent.getUserSpaceUse(webUserDto.getUserId());
 		spaceDto.setUserSpace(spaceDto.getUserSpace()+useSpace);
 		redisComponent.saveUserSpaceUse(webUserDto.getUserId(), spaceDto);
+	}
+
+	/**
+	 * 异步合并文件
+	 * @param fileId
+	 * @param webUserDto
+	 */
+	@Async
+	public void transferFile(String fileId, SessionWebUserDto webUserDto){
+
 	}
 }
