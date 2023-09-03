@@ -26,11 +26,14 @@ import xyz.kbws.entity.dto.SysSettingsDto;
 import xyz.kbws.entity.dto.UserSpaceDto;
 import xyz.kbws.entity.enums.PageSize;
 import xyz.kbws.entity.enums.UserStatusEnum;
+import xyz.kbws.entity.po.FileInfo;
+import xyz.kbws.entity.query.FileInfoQuery;
 import xyz.kbws.entity.query.UserInfoQuery;
 import xyz.kbws.entity.po.UserInfo;
 import xyz.kbws.entity.vo.PaginationResultVO;
 import xyz.kbws.entity.query.SimplePage;
 import xyz.kbws.exception.BusinessException;
+import xyz.kbws.mappers.FileInfoMapper;
 import xyz.kbws.mappers.UserInfoMapper;
 import xyz.kbws.service.EmailCodeService;
 import xyz.kbws.service.UserInfoService;
@@ -49,6 +52,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
 	@Resource
 	private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
+	@Resource
+	private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 	@Resource
 	private EmailCodeService emailCodeService;
 	@Resource
@@ -281,8 +286,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 		}
 		//用户空间
 		UserSpaceDto userSpaceDto = new UserSpaceDto();
-		//TODO 查询当前用户已经上传文件大小总和
-		userSpaceDto.setUserSpace(0L);
+		Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
+		userSpaceDto.setUserSpace(useSpace);
 		userSpaceDto.setTotalSpace(userInfo.getTotalSpace());
 		redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
 		return sessionWebUserDto;
@@ -347,8 +352,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 			sessionWebUserDto.setAdmin(false);
 		}
 		UserSpaceDto userSpaceDto = new UserSpaceDto();
-		//TODO 获取用户已使用的空间
-		userSpaceDto.setUserSpace(0L);
+		Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
+		userSpaceDto.setUserSpace(useSpace);
 		userSpaceDto.setTotalSpace(userSpaceDto.getTotalSpace());
 		redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
 		return sessionWebUserDto;

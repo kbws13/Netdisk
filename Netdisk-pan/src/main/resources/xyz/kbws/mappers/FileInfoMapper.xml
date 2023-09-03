@@ -651,4 +651,10 @@
 		select <include refid="base_column_list" /> from file_info where file_id=#{fileId} and user_id=#{userId}
 	</select>
 
+	<!--查询用户使用空间-->
+	<select id="selectUseSpace" resultType="java.lang.Long">
+		select IFNULL( SUM(file_size),0) from file_info where user_id = #{userId}
+	</select>
+
+
 </mapper>

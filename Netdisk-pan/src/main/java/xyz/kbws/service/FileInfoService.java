@@ -2,6 +2,9 @@ package xyz.kbws.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+import xyz.kbws.entity.dto.SessionWebUserDto;
+import xyz.kbws.entity.dto.UploadResultDto;
 import xyz.kbws.entity.query.FileInfoQuery;
 import xyz.kbws.entity.po.FileInfo;
 import xyz.kbws.entity.vo.PaginationResultVO;
@@ -69,4 +72,9 @@ public interface FileInfoService {
 	 */
 	Integer deleteFileInfoByFileIdAndUserId(String fileId,String userId);
 
+	/**
+	 * 文件上传
+	 */
+	UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file,
+							   String fileName, String filePid, String fileMd5, Integer chunkIndex, Integer chunks);
 }

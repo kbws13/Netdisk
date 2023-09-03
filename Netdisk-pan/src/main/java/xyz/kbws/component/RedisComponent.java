@@ -4,6 +4,9 @@ import org.springframework.stereotype.Component;
 import xyz.kbws.entity.constants.Constants;
 import xyz.kbws.entity.dto.SysSettingsDto;
 import xyz.kbws.entity.dto.UserSpaceDto;
+import xyz.kbws.entity.po.FileInfo;
+import xyz.kbws.entity.query.FileInfoQuery;
+import xyz.kbws.mappers.FileInfoMapper;
 
 import javax.annotation.Resource;
 
@@ -11,6 +14,8 @@ import javax.annotation.Resource;
 public class RedisComponent {
     @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
     public SysSettingsDto getSysSettingDto(){
         SysSettingsDto sysSettingsDto = (SysSettingsDto) redisUtils.get(Constants.REDIS_KEY_SYS_SETTING);
@@ -29,8 +34,8 @@ public class RedisComponent {
         UserSpaceDto spaceDto = (UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USER_SPACE_USE+userId);
         if (spaceDto == null){
             spaceDto = new UserSpaceDto();
-            //TODO 查询当前用户已经上传文件大小总和
-            spaceDto.setUserSpace(0L);
+            Long useSpace = fileInfoMapper.selectUseSpace(userId);
+            spaceDto.setUserSpace(useSpace);
             spaceDto.setTotalSpace(getSysSettingDto().getUserInitUseSpace() * Constants.MB);
             saveUserSpaceUse(userId,spaceDto);
         }

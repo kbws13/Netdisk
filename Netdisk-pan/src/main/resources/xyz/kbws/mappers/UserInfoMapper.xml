@@ -633,4 +633,23 @@
 		select <include refid="base_column_list" /> from user_info where qq_open_id=#{qqOpenId}
 	</select>
 
+	<!--更新用户空间-->
+	<update id="updateUserSpace">
+		update user_info
+		<set>
+			<if test="useSpace!=null">
+				use_space = use_space + #{useSpace},
+			</if>
+			<if test="totalSpace!=null">
+				total_space = total_space + #{totalSpace},
+			</if>
+		</set>
+		where user_id = #{userId}
+		<if test="useSpace != null">
+			and <![CDATA[ (use_space+#{useSpace}) <= total_space ]]>
+		</if>
+		<if test="totalSpace != null">
+			and <![CDATA[ (total_space+#{totalSpace}) <= use_space ]]>
+		</if>
+	</update>
 </mapper>
