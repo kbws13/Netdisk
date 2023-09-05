@@ -2,8 +2,10 @@ package xyz.kbws.service.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
+import java.util.RandomAccess;
 
 import javax.annotation.Resource;
 
@@ -345,6 +347,84 @@ public class FileInfoServiceImpl implements FileInfoService {
 	 */
 	@Async
 	public void transferFile(String fileId, SessionWebUserDto webUserDto){
+		Boolean transferSuccess = true;
+		String targetFilePath = null;
+		String cover = null;
+		FileTypeEnum fileTypeEnum = null;
+		FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, webUserDto.getUserId());
+		try {
+			if (fileInfo == null || !FileStatusEnum.TRANSFER.getStatus().equals(fileInfo.getStatus())){
+				return;
+			}
+			//临时目录
+			String tempFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP;
+			String currentUserFolderName = webUserDto.getUserId() + fileId;
+			File fileFolder = new File(tempFolderName + currentUserFolderName);
 
+			String fileSuffix = StringTools.getFileSuffix(fileInfo.getFileName());
+			String month = DateUtil.format(fileInfo.getCreateTime(), DateTimePatternEnum.YYYYMM.getPattern());
+			//目标目录
+			String targetFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
+			File targetFolder = new File(targetFolderName + "/" + month);
+			if (!targetFolder.exists()){
+				targetFolder.mkdirs();
+			}
+			//真实的文件名
+			String realFileName = currentUserFolderName + fileSuffix;
+			targetFilePath = targetFolder.getPath() + "/" + realFileName;
+			//合并文件
+			union(fileFolder.getPath(), targetFilePath,fileInfo.getFileName(),true);
+		}catch (Exception e){
+
+		}
+	}
+
+	private void union(String dirPath, String toFilePath, String fileName, Boolean delSource){
+		File dir = new File(dirPath);
+		if (!dir.exists()){
+			throw new BusinessException("目录不存在");
+		}
+
+		File[] fileList = dir.listFiles();
+		File targetFile = new File(toFilePath);
+		RandomAccessFile writeFile = null;
+		try {
+			writeFile = new RandomAccessFile(targetFile, "rv");
+			byte[] b = new byte[1024 * 10];
+			for (int i = 0; i < fileList.length; i++) {
+				int len = -1;
+				File chunkFile = new File(dirPath + "/" + i);
+				RandomAccessFile readFile = null;
+				try {
+					readFile = new RandomAccessFile(chunkFile, "r");
+					while ((len = readFile.read(b)) != -1){
+						writeFile.write(b,0,len);
+					}
+				}catch (Exception e){
+					logger.error("合并分片失败",e);
+					throw new BusinessException("合并分片失败");
+				}finally {
+					readFile.close();
+				}
+			}
+		}catch (Exception e){
+			logger.error("合并文件:{}失败",fileName);
+			throw new BusinessException("合并文件"+fileName+"出错了");
+		}finally {
+			if (writeFile != null){
+				try {
+					writeFile.close();
+				}catch (IOException e){
+					e.printStackTrace();
+				}
+			}
+			if (delSource && dir.exists()){
+				try {
+					FileUtils.deleteDirectory(dir);
+				}catch (IOException e){
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
