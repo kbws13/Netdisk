@@ -23,4 +23,5 @@ public class Constants {
     public static final Integer REDIS_KEY_EXPIRES_OEN_HOUR = REDIS_KEY_EXPIRES_ONE_MIN * 60;
     public static final String  REDIS_KEY_USER_FILE_TEMP_SIZE = "netdisk:user:file:temp:";
     public static final String  VIEW_OBJ_RESULT_KEY = "result";
+    public static final String TS_NAME = "index.ts";
 }

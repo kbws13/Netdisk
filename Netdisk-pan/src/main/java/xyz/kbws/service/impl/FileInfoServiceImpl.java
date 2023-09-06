@@ -38,6 +38,7 @@ import xyz.kbws.mappers.FileInfoMapper;
 import xyz.kbws.mappers.UserInfoMapper;
 import xyz.kbws.service.FileInfoService;
 import xyz.kbws.utils.DateUtil;
+import xyz.kbws.utils.ProcessUtils;
 import xyz.kbws.utils.StringTools;
 
 
@@ -247,7 +248,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 				redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
 				return resultDto;
 			}
-
+			redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
 			//最后一个文件上传完成，记录数据，异步合并分片
 			String month = DateUtil.format(new Date(), DateTimePatternEnum.YYYYMM.getPattern());
 			String fileSuffix = StringTools.getFileSuffix(fileName);
@@ -375,6 +376,12 @@ public class FileInfoServiceImpl implements FileInfoService {
 			//合并文件
 			union(fileFolder.getPath(), targetFilePath,fileInfo.getFileName(),true);
 			//视频文件切割
+			fileTypeEnum = FileTypeEnum.getFileTypeBySuffix(fileSuffix);
+			if (fileTypeEnum == FileTypeEnum.VIDEO){
+
+			}else if (fileTypeEnum == FileTypeEnum.IMAGE){
+
+			}
 		}catch (Exception e){
 			logger.error("文件转码失败,文件ID:{},userId:{}",fileId, webUserDto.getUserId(),e);
 		}finally {
@@ -433,5 +440,26 @@ public class FileInfoServiceImpl implements FileInfoService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 视频切片函数
+	 * @param fileId
+	 * @param videoFilePath
+	 */
+	private void cutFile4Video(String fileId, String videoFilePath){
+		//创建同名切片目录
+		File tsFolder = new File(videoFilePath.substring(0, videoFilePath.lastIndexOf(".")));
+		if (!tsFolder.exists()){
+			tsFolder.mkdirs();
+		}
+		final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264 mp4toannexb %s";
+		final String CMD_OUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
+		String tsPath = tsFolder + "/" + Constants.TS_NAME;
+		//生成.ts
+		String cmd = String.format(CMD_TRANSFER_2TS, videoFilePath, tsPath);
+		ProcessUtils.executeCommand(cmd, false);
+		//生成索引文件.m3u8和切片.ts
+
 	}
 }
