@@ -656,5 +656,53 @@
 		select IFNULL( SUM(file_size),0) from file_info where user_id = #{userId}
 	</select>
 
-
+	<!--更新文件状态-->
+	<update id="updateFileStatusWithOldStatus" parameterType="xyz.kbws.entity.po.FileInfo">
+		UPDATE file_info
+		<set>
+			<if test="bean.fileMd5 != null">
+				file_md5 = #{bean.fileMd5},
+			</if>
+			<if test="bean.filePid != null">
+				file_pid = #{bean.filePid},
+			</if>
+			<if test="bean.fileSize != null">
+				file_size = #{bean.fileSize},
+			</if>
+			<if test="bean.fileName != null">
+				file_name = #{bean.fileName},
+			</if>
+			<if test="bean.fileCover != null">
+				file_cover = #{bean.fileCover},
+			</if>
+			<if test="bean.filePath != null">
+				file_path = #{bean.filePath},
+			</if>
+			<if test="bean.createTime != null">
+				create_time = #{bean.createTime},
+			</if>
+			<if test="bean.lastUpdateTime != null">
+				last_update_time = #{bean.lastUpdateTime},
+			</if>
+			<if test="bean.folderType != null">
+				folder_type = #{bean.folderType},
+			</if>
+			<if test="bean.fileCateory != null">
+				file_cateory = #{bean.fileCateory},
+			</if>
+			<if test="bean.fileType != null">
+				file_type = #{bean.fileType},
+			</if>
+			<if test="bean.status != null">
+				status = #{bean.status},
+			</if>
+			<if test="bean.recoveryTime != null">
+				recovery_time = #{bean.recoveryTime},
+			</if>
+			<if test="bean.delFlag != null">
+				del_flag = #{bean.delFlag},
+			</if>
+		</set>
+		where file_id=#{fileId} and user_id=#{userId} and status = #{oldStatus}
+	</update>
 </mapper>

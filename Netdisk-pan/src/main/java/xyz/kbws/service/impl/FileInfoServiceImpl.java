@@ -374,8 +374,15 @@ public class FileInfoServiceImpl implements FileInfoService {
 			targetFilePath = targetFolder.getPath() + "/" + realFileName;
 			//合并文件
 			union(fileFolder.getPath(), targetFilePath,fileInfo.getFileName(),true);
+			//视频文件切割
 		}catch (Exception e){
-
+			logger.error("文件转码失败,文件ID:{},userId:{}",fileId, webUserDto.getUserId(),e);
+		}finally {
+			FileInfo updateInfo = new FileInfo();
+			updateInfo.setFileSize(new File(targetFilePath).length());
+			updateInfo.setFileCover(cover);
+			updateInfo.setStatus(transferSuccess ? FileStatusEnum.USING.getStatus() : FileStatusEnum.TRANSFER_FAIL.getStatus());
+			fileInfoMapper.updateFileStatusWithOldStatus(fileId, webUserDto.getUserId(), updateInfo, FileStatusEnum.TRANSFER.getStatus());
 		}
 	}
 
