@@ -20,7 +20,7 @@ spring:
 
 #项目目录
 project:
-  folder: D:/Data/Project/Netdisk
+  folder: D:/Data/Project/Netdisk/
 
 #日志级别配置
 log:

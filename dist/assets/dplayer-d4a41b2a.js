@@ -1,4 +1,4 @@
-import{c as ko,g as Bo}from"./APlayer-9c029590.js";var lt={exports:{}};(function(st,Io){(function(He,Oe){st.exports=Oe()})(self,()=>(()=>{var He={916:(u,v,f)=>{var z=f(471);u.exports=function(I){var x,p="",C=(I=I||{}).video,B=I.options,y=z.$escape,L=I.tran,O=I.icons,S=I.index,D=z.$each;return I.$value,I.$index,p+=`<div class="dplayer-mask"></div>
+import{c as ko,g as Bo}from"./aplayer-585df14e.js";var lt={exports:{}};(function(st,Io){(function(He,Oe){st.exports=Oe()})(self,()=>(()=>{var He={916:(u,v,f)=>{var z=f(471);u.exports=function(I){var x,p="",C=(I=I||{}).video,B=I.options,y=z.$escape,L=I.tran,O=I.icons,S=I.index,D=z.$each;return I.$value,I.$index,p+=`<div class="dplayer-mask"></div>
 <div class="dplayer-video-wrap">
     `,x=f(568)(C),p+=x,p+=`
     `,B.logo&&(p+=`

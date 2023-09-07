@@ -1,4 +1,4 @@
-import{c as $,g as B}from"./APlayer-9c029590.js";var R={exports:{}};/*!
+import{c as $,g as B}from"./aplayer-585df14e.js";var R={exports:{}};/*!
  * clipboard.js v2.0.11
  * https://clipboardjs.com/
  *
