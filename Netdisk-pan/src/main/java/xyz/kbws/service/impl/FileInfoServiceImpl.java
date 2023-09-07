@@ -39,6 +39,7 @@ import xyz.kbws.mappers.UserInfoMapper;
 import xyz.kbws.service.FileInfoService;
 import xyz.kbws.utils.DateUtil;
 import xyz.kbws.utils.ProcessUtils;
+import xyz.kbws.utils.ScaleFiler;
 import xyz.kbws.utils.StringTools;
 
 
@@ -378,9 +379,21 @@ public class FileInfoServiceImpl implements FileInfoService {
 			//视频文件切割
 			fileTypeEnum = FileTypeEnum.getFileTypeBySuffix(fileSuffix);
 			if (fileTypeEnum == FileTypeEnum.VIDEO){
+				cutFile4Video(fileId,targetFilePath);
+				//视频生成缩略图
+				cover = month + "/" + currentUserFolderName + Constants.IMAGE_PNG_SUFFIX;
+				String coverPath = targetFolderName + "/" + cover;
+				ScaleFiler.createCover4Video(new File(targetFilePath), Constants.LENGTH_150, new File(coverPath));
 
 			}else if (fileTypeEnum == FileTypeEnum.IMAGE){
-
+				//生成缩略图
+				cover = month + "/" + realFileName.replace(".","_.");
+				String coverPath = targetFolderName + "/" + cover;
+				Boolean created = ScaleFiler.createThumbnailWidthFFmpeg(new File(targetFilePath),
+						Constants.LENGTH_150, new File(coverPath), false);
+				if (!created){
+					FileUtils.copyFile(new File(targetFilePath), new File(coverPath));
+				}
 			}
 		}catch (Exception e){
 			logger.error("文件转码失败,文件ID:{},userId:{}",fileId, webUserDto.getUserId(),e);
@@ -403,7 +416,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 		File targetFile = new File(toFilePath);
 		RandomAccessFile writeFile = null;
 		try {
-			writeFile = new RandomAccessFile(targetFile, "rv");
+			writeFile = new RandomAccessFile(targetFile, "rw");
 			byte[] b = new byte[1024 * 10];
 			for (int i = 0; i < fileList.length; i++) {
 				int len = -1;
@@ -453,13 +466,17 @@ public class FileInfoServiceImpl implements FileInfoService {
 		if (!tsFolder.exists()){
 			tsFolder.mkdirs();
 		}
-		final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264 mp4toannexb %s";
+		final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
 		final String CMD_OUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
 		String tsPath = tsFolder + "/" + Constants.TS_NAME;
 		//生成.ts
 		String cmd = String.format(CMD_TRANSFER_2TS, videoFilePath, tsPath);
 		ProcessUtils.executeCommand(cmd, false);
 		//生成索引文件.m3u8和切片.ts
-
+		cmd = String.format(CMD_OUT_TS, tsPath, tsFolder.getPath() + "/" + Constants.M3U8_NAME,
+				tsFolder.getPath(), fileId);
+		ProcessUtils.executeCommand(cmd, false);
+		//删除index.ts文件
+		new File(tsPath).delete();
 	}
 }

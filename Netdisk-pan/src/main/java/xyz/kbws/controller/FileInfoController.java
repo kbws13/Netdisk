@@ -2,6 +2,7 @@ package xyz.kbws.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.kbws.annotation.GlobalInterceptor;
 import xyz.kbws.annotation.VerifyParam;
@@ -20,14 +21,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
  * 文件信息 Controller
  */
 @RestController("fileInfoController")
-@RequestMapping("/file")
-public class FileInfoController extends ABaseController{
+@RequestMapping("file")
+public class FileInfoController extends CommonFileController{
 
 	@Resource
 	private FileInfoService fileInfoService;
@@ -73,5 +75,19 @@ public class FileInfoController extends ABaseController{
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		UploadResultDto resultDto = fileInfoService.uploadFile(webUserDto, fileId, file, fileName, filePid, fileMd5, chunkIndex, chunks);
 		return getSuccessResponseVO(resultDto);
+	}
+
+	/**
+	 * 获取图片
+	 * @param response
+	 * @param imageFolder 图片文件夹
+	 * @param imageName 图片名字
+	 * @return
+	 */
+	@RequestMapping("getImage/{imageFolder}/{imageName}")
+	@GlobalInterceptor(checkParams = true)
+	public void getImage(HttpServletResponse response, @PathVariable("imageFolder") String imageFolder,
+							   @PathVariable("imageName") String imageName){
+		super.getImage(response, imageFolder, imageName);
 	}
 }
