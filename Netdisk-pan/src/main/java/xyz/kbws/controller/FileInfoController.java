@@ -94,4 +94,10 @@ public class FileInfoController extends CommonFileController{
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		super.getFile(response, fileId, webUserDto.getUserId());
 	}
+
+	@RequestMapping("/getFile/{fileId}")
+	public void getFile(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		super.getFile(response, fileId, webUserDto.getUserId());
+	}
 }
