@@ -121,4 +121,14 @@ public class FileInfoController extends CommonFileController{
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		return super.getFolderInfo(path, webUserDto.getUserId());
 	}
+
+	@RequestMapping("/rename")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO rename(HttpSession session,
+							 @VerifyParam(required = true) String fileId,
+							 @VerifyParam(required = true) String fileName){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		FileInfo rename = fileInfoService.rename(fileId, webUserDto.getUserId(), fileName);
+		return getSuccessResponseVO(rename);
+	}
 }

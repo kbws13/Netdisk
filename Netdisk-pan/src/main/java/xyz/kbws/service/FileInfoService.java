@@ -86,4 +86,13 @@ public interface FileInfoService {
 	 * @return
 	 */
 	FileInfo newFolder(String filePid, String userId, String folderName);
+
+	/**
+	 * 重命名文件夹
+	 * @param fileId 文件id
+	 * @param userId 用户id
+	 * @param fileName 文件夹名
+	 * @return
+	 */
+	FileInfo rename(String fileId, String userId, String fileName);
 }

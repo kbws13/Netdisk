@@ -506,4 +506,37 @@ public class FileInfoServiceImpl implements FileInfoService {
 			throw new BusinessException("此目录下已经存在同名文件，请修改名称");
 		}
 	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public FileInfo rename(String fileId, String userId, String fileName) {
+		FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+		if (fileInfo == null){
+			throw new BusinessException("文件不存在");
+		}
+		String filePid = fileInfo.getFilePid();
+		checkFileName(filePid, userId, fileName, fileInfo.getFolderType());
+		//获取文件后缀
+		if (FileFolderTypeEnum.FILE.getType().equals(fileInfo.getFolderType())){
+			fileName = fileName + StringTools.getFileSuffix(fileInfo.getFileName());
+		}
+		Date curDate = new Date();
+		FileInfo dbInfo = new FileInfo();
+		dbInfo.setFileName(fileName);
+		dbInfo.setLastUpdateTime(curDate);
+		this.fileInfoMapper.updateByFileIdAndUserId(dbInfo, fileId, userId);
+
+		FileInfoQuery fileInfoQuery = new FileInfoQuery();
+		fileInfoQuery.setFilePid(filePid);
+		fileInfoQuery.setUserId(userId);
+		fileInfoQuery.setFileName(fileName);
+		Integer count = this.fileInfoMapper.selectCount(fileInfoQuery);
+		if (count > 1){
+			throw new BusinessException("文件名" + fileName + "已经存在");
+		}
+		fileInfo.setFileName(fileName);
+		fileInfo.setLastUpdateTime(curDate);
+
+		return fileInfo;
+	}
 }
