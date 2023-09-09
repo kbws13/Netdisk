@@ -90,7 +90,8 @@ public class FileInfoServiceImpl implements FileInfoService {
 		SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
 		param.setSimplePage(page);
 		List<FileInfo> list = this.findListByParam(param);
-		PaginationResultVO<FileInfo> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
+		PaginationResultVO<FileInfo> result = new PaginationResultVO(count, page.getPageSize(),
+				page.getPageNo(), page.getPageTotal(), list);
 		return result;
 	}
 
@@ -180,20 +181,18 @@ public class FileInfoServiceImpl implements FileInfoService {
 	 */
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file,
-									  String fileName, String filePid, String fileMd5, Integer chunkIndex,
-									  Integer chunks) {
-		UploadResultDto resultDto = new UploadResultDto();
-		Boolean uploadSuccess = true;
+	public UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file, String fileName, String filePid, String fileMd5,
+									  Integer chunkIndex, Integer chunks) {
 		File tempFileFolder = null;
+		Boolean uploadSuccess = true;
 		try {
-			if (StringTools.isEmpty(fileId)){
+			UploadResultDto resultDto = new UploadResultDto();
+			if (StringTools.isEmpty(fileId)) {
 				fileId = StringTools.getRandomString(Constants.LENGTH_10);
 			}
 			resultDto.setFileId(fileId);
 			Date curDate = new Date();
 			UserSpaceDto spaceDto = redisComponent.getUserSpaceUse(webUserDto.getUserId());
-
 			if (chunkIndex == 0) {
 				FileInfoQuery infoQuery = new FileInfoQuery();
 				infoQuery.setFileMd5(fileMd5);
@@ -203,62 +202,61 @@ public class FileInfoServiceImpl implements FileInfoService {
 				//秒传
 				if (!dbFileList.isEmpty()) {
 					FileInfo dbFile = dbFileList.get(0);
-					//判断文件大小
+					//判断文件状态
 					if (dbFile.getFileSize() + spaceDto.getUserSpace() > spaceDto.getTotalSpace()) {
 						throw new BusinessException(ResponseCodeEnum.CODE_904);
 					}
 					dbFile.setFileId(fileId);
 					dbFile.setFilePid(filePid);
 					dbFile.setUserId(webUserDto.getUserId());
+					dbFile.setFileMd5(null);
 					dbFile.setCreateTime(curDate);
 					dbFile.setLastUpdateTime(curDate);
 					dbFile.setStatus(FileStatusEnum.USING.getStatus());
 					dbFile.setDelFlag(FileDelFlagEnum.USING.getFlag());
 					dbFile.setFileMd5(fileMd5);
-					//文件重命名
 					fileName = autoRename(filePid, webUserDto.getUserId(), fileName);
 					dbFile.setFileName(fileName);
 					this.fileInfoMapper.insert(dbFile);
 					resultDto.setStatus(UploadStatusEnum.UPLOAD_SECONDS.getCode());
-
-					//更新用户使用空间
+					//更新用户空间使用
 					updateUserSpace(webUserDto, dbFile.getFileSize());
+
 					return resultDto;
 				}
 			}
-			//判断磁盘空间
-			Long currentTempSize = redisComponent.getFileTempSize(webUserDto.getUserId(),  fileId);
-			if (file.getSize() + currentTempSize + spaceDto.getUserSpace() > spaceDto.getTotalSpace()){
-				throw new BusinessException(ResponseCodeEnum.CODE_904);
-			}
-
-			//暂存临时目录
+			//暂存在临时目录
 			String tempFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP;
 			String currentUserFolderName = webUserDto.getUserId() + fileId;
-
+			//创建临时目录
 			tempFileFolder = new File(tempFolderName + currentUserFolderName);
-			if (!tempFileFolder.exists()){
+			if (!tempFileFolder.exists()) {
 				tempFileFolder.mkdirs();
+			}
+
+			//判断磁盘空间
+			Long currentTempSize = redisComponent.getFileTempSize(webUserDto.getUserId(), fileId);
+			if (file.getSize() + currentTempSize + spaceDto.getUserSpace() > spaceDto.getTotalSpace()) {
+				throw new BusinessException(ResponseCodeEnum.CODE_904);
 			}
 
 			File newFile = new File(tempFileFolder.getPath() + "/" + chunkIndex);
 			file.transferTo(newFile);
-			if (chunkIndex<chunks-1){
+			//保存临时大小
+			redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
+			//不是最后一个分片，直接返回
+			if (chunkIndex < chunks - 1) {
 				resultDto.setStatus(UploadStatusEnum.UPLOADING.getCode());
-				//保存临时大小
-				redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
 				return resultDto;
 			}
-			redisComponent.saveFileTempSize(webUserDto.getUserId(), fileId, file.getSize());
-			//最后一个文件上传完成，记录数据，异步合并分片
-			String month = DateUtil.format(new Date(), DateTimePatternEnum.YYYYMM.getPattern());
+			//最后一个分片上传完成，记录数据库，异步合并分片
+			String month = DateUtil.format(curDate, DateTimePatternEnum.YYYYMM.getPattern());
 			String fileSuffix = StringTools.getFileSuffix(fileName);
 			//真实文件名
 			String realFileName = currentUserFolderName + fileSuffix;
 			FileTypeEnum fileTypeEnum = FileTypeEnum.getFileTypeBySuffix(fileSuffix);
 			//自动重命名
 			fileName = autoRename(filePid, webUserDto.getUserId(), fileName);
-
 			FileInfo fileInfo = new FileInfo();
 			fileInfo.setFileId(fileId);
 			fileInfo.setUserId(webUserDto.getUserId());
@@ -268,7 +266,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 			fileInfo.setFilePid(filePid);
 			fileInfo.setCreateTime(curDate);
 			fileInfo.setLastUpdateTime(curDate);
-			fileInfo.setFileCateory(fileTypeEnum.getCategory().getCategory());
+			fileInfo.setFileCategory(fileTypeEnum.getCategory().getCategory());
 			fileInfo.setFileType(fileTypeEnum.getType());
 			fileInfo.setStatus(FileStatusEnum.TRANSFER.getStatus());
 			fileInfo.setFolderType(FileFolderTypeEnum.FILE.getType());
@@ -279,34 +277,32 @@ public class FileInfoServiceImpl implements FileInfoService {
 			updateUserSpace(webUserDto, totalSize);
 
 			resultDto.setStatus(UploadStatusEnum.UPLOAD_FINISH.getCode());
-
-			// 在提交事务之后调用方法
+			//事务提交后调用异步方法
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {
-					//直接调用方法并不是异步执行，需要托管给Spring然后调用才是执行异步方法
 					fileInfoService.transferFile(fileInfo.getFileId(), webUserDto);
 				}
 			});
-
 			return resultDto;
-		}catch (BusinessException e){
-			logger.error("文件上传失败",e);
+		} catch (BusinessException e) {
 			uploadSuccess = false;
+			logger.error("文件上传失败", e);
 			throw e;
-		}catch (Exception e){
-			logger.error("文件上传失败",e);
+		} catch (Exception e) {
 			uploadSuccess = false;
-		}finally {
-			if (!uploadSuccess && tempFileFolder!= null){
+			logger.error("文件上传失败", e);
+			throw new BusinessException("文件上传失败");
+		} finally {
+			//如果上传失败，清除临时目录
+			if (tempFileFolder != null && !uploadSuccess) {
 				try {
 					FileUtils.deleteDirectory(tempFileFolder);
 				} catch (IOException e) {
-					logger.error("删除临时目录失败",e);
+					logger.error("删除临时目录失败");
 				}
 			}
 		}
-		return resultDto;
 	}
 
 	/**
@@ -463,20 +459,20 @@ public class FileInfoServiceImpl implements FileInfoService {
 	private void cutFile4Video(String fileId, String videoFilePath){
 		//创建同名切片目录
 		File tsFolder = new File(videoFilePath.substring(0, videoFilePath.lastIndexOf(".")));
-		if (!tsFolder.exists()){
+		if (!tsFolder.exists()) {
 			tsFolder.mkdirs();
 		}
 		final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
-		final String CMD_OUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
+		final String CMD_CUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
+
 		String tsPath = tsFolder + "/" + Constants.TS_NAME;
 		//生成.ts
 		String cmd = String.format(CMD_TRANSFER_2TS, videoFilePath, tsPath);
 		ProcessUtils.executeCommand(cmd, false);
-		//生成索引文件.m3u8和切片.ts
-		cmd = String.format(CMD_OUT_TS, tsPath, tsFolder.getPath() + "/" + Constants.M3U8_NAME,
-				tsFolder.getPath(), fileId);
+		//生成索引文件.m3u8 和切片.ts
+		cmd = String.format(CMD_CUT_TS, tsPath, tsFolder.getPath() + "/" + Constants.M3U8_NAME, tsFolder.getPath(), fileId);
 		ProcessUtils.executeCommand(cmd, false);
-		//删除index.ts文件
+		//删除index.ts
 		new File(tsPath).delete();
 	}
 }

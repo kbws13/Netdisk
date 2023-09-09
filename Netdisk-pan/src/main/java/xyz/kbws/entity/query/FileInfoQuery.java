@@ -2,9 +2,6 @@ package xyz.kbws.entity.query;
 
 import xyz.kbws.entity.query.BaseParam;
 
-import java.util.Date;
-
-
 /**
  * 文件信息参数
  */
@@ -26,7 +23,7 @@ public class FileInfoQuery extends BaseParam {
 	private String userIdFuzzy;
 
 	/**
-	 * 文件MD5值
+	 * md5值，第一次上传记录
 	 */
 	private String fileMd5;
 
@@ -45,7 +42,7 @@ public class FileInfoQuery extends BaseParam {
 	private Long fileSize;
 
 	/**
-	 * 文件名
+	 * 文件名称
 	 */
 	private String fileName;
 
@@ -89,22 +86,22 @@ public class FileInfoQuery extends BaseParam {
 	private Integer folderType;
 
 	/**
-	 * 文件分类 1:视频 2:音频 3:图片 4:文档 5:其他
+	 * 1:视频 2:音频  3:图片 4:文档 5:其他
 	 */
-	private Integer fileCateory;
+	private Integer fileCategory;
 
 	/**
-	 * 1:视频 2:音频 3:图片 4:PDF 5:DOC 6:Excel 7:TXT 8:Code 9: ZIP 10: 其他
+	 * 1:视频 2:音频  3:图片 4:pdf 5:doc 6:excel 7:txt 8:code 9:zip 10:其他
 	 */
 	private Integer fileType;
 
 	/**
-	 * 0:转码中 1:转码失败 2:转码成功
+	 * 0:转码中 1转码失败 2:转码成功
 	 */
 	private Integer status;
 
 	/**
-	 * 进入回收站时间
+	 * 回收站时间
 	 */
 	private String recoveryTime;
 
@@ -113,238 +110,290 @@ public class FileInfoQuery extends BaseParam {
 	private String recoveryTimeEnd;
 
 	/**
-	 * 标记删除 0:删除 1:回收站 2:正常
+	 * 删除标记 0:删除  1:回收站  2:正常
 	 */
 	private Integer delFlag;
 
+	private String[] fileIdArray;
 
-	public void setFileId(String fileId){
+	private String[] filePidArray;
+
+	private String[] excludeFileIdArray;
+
+	private Boolean queryExpire;
+
+	private Boolean queryNickName;
+
+
+	public Boolean getQueryNickName() {
+		return queryNickName;
+	}
+
+	public void setQueryNickName(Boolean queryNickName) {
+		this.queryNickName = queryNickName;
+	}
+
+	public Boolean getQueryExpire() {
+		return queryExpire;
+	}
+
+	public void setQueryExpire(Boolean queryExpire) {
+		this.queryExpire = queryExpire;
+	}
+
+	public void setFileId(String fileId) {
 		this.fileId = fileId;
 	}
 
-	public String getFileId(){
+	public String getFileId() {
 		return this.fileId;
 	}
 
-	public void setFileIdFuzzy(String fileIdFuzzy){
+	public void setFileIdFuzzy(String fileIdFuzzy) {
 		this.fileIdFuzzy = fileIdFuzzy;
 	}
 
-	public String getFileIdFuzzy(){
+	public String getFileIdFuzzy() {
 		return this.fileIdFuzzy;
 	}
 
-	public void setUserId(String userId){
+	public void setUserId(String userId) {
 		this.userId = userId;
 	}
 
-	public String getUserId(){
+	public String getUserId() {
 		return this.userId;
 	}
 
-	public void setUserIdFuzzy(String userIdFuzzy){
+	public void setUserIdFuzzy(String userIdFuzzy) {
 		this.userIdFuzzy = userIdFuzzy;
 	}
 
-	public String getUserIdFuzzy(){
+	public String getUserIdFuzzy() {
 		return this.userIdFuzzy;
 	}
 
-	public void setFileMd5(String fileMd5){
+	public void setFileMd5(String fileMd5) {
 		this.fileMd5 = fileMd5;
 	}
 
-	public String getFileMd5(){
+	public String getFileMd5() {
 		return this.fileMd5;
 	}
 
-	public void setFileMd5Fuzzy(String fileMd5Fuzzy){
+	public void setFileMd5Fuzzy(String fileMd5Fuzzy) {
 		this.fileMd5Fuzzy = fileMd5Fuzzy;
 	}
 
-	public String getFileMd5Fuzzy(){
+	public String getFileMd5Fuzzy() {
 		return this.fileMd5Fuzzy;
 	}
 
-	public void setFilePid(String filePid){
+	public void setFilePid(String filePid) {
 		this.filePid = filePid;
 	}
 
-	public String getFilePid(){
+	public String getFilePid() {
 		return this.filePid;
 	}
 
-	public void setFilePidFuzzy(String filePidFuzzy){
+	public void setFilePidFuzzy(String filePidFuzzy) {
 		this.filePidFuzzy = filePidFuzzy;
 	}
 
-	public String getFilePidFuzzy(){
+	public String getFilePidFuzzy() {
 		return this.filePidFuzzy;
 	}
 
-	public void setFileSize(Long fileSize){
+	public void setFileSize(Long fileSize) {
 		this.fileSize = fileSize;
 	}
 
-	public Long getFileSize(){
+	public Long getFileSize() {
 		return this.fileSize;
 	}
 
-	public void setFileName(String fileName){
+	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 
-	public String getFileName(){
+	public String getFileName() {
 		return this.fileName;
 	}
 
-	public void setFileNameFuzzy(String fileNameFuzzy){
+	public void setFileNameFuzzy(String fileNameFuzzy) {
 		this.fileNameFuzzy = fileNameFuzzy;
 	}
 
-	public String getFileNameFuzzy(){
+	public String getFileNameFuzzy() {
 		return this.fileNameFuzzy;
 	}
 
-	public void setFileCover(String fileCover){
+	public void setFileCover(String fileCover) {
 		this.fileCover = fileCover;
 	}
 
-	public String getFileCover(){
+	public String getFileCover() {
 		return this.fileCover;
 	}
 
-	public void setFileCoverFuzzy(String fileCoverFuzzy){
+	public void setFileCoverFuzzy(String fileCoverFuzzy) {
 		this.fileCoverFuzzy = fileCoverFuzzy;
 	}
 
-	public String getFileCoverFuzzy(){
+	public String getFileCoverFuzzy() {
 		return this.fileCoverFuzzy;
 	}
 
-	public void setFilePath(String filePath){
+	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 	}
 
-	public String getFilePath(){
+	public String getFilePath() {
 		return this.filePath;
 	}
 
-	public void setFilePathFuzzy(String filePathFuzzy){
+	public void setFilePathFuzzy(String filePathFuzzy) {
 		this.filePathFuzzy = filePathFuzzy;
 	}
 
-	public String getFilePathFuzzy(){
+	public String getFilePathFuzzy() {
 		return this.filePathFuzzy;
 	}
 
-	public void setCreateTime(String createTime){
+	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
 	}
 
-	public String getCreateTime(){
+	public String getCreateTime() {
 		return this.createTime;
 	}
 
-	public void setCreateTimeStart(String createTimeStart){
+	public void setCreateTimeStart(String createTimeStart) {
 		this.createTimeStart = createTimeStart;
 	}
 
-	public String getCreateTimeStart(){
+	public String getCreateTimeStart() {
 		return this.createTimeStart;
 	}
-	public void setCreateTimeEnd(String createTimeEnd){
+
+	public void setCreateTimeEnd(String createTimeEnd) {
 		this.createTimeEnd = createTimeEnd;
 	}
 
-	public String getCreateTimeEnd(){
+	public String getCreateTimeEnd() {
 		return this.createTimeEnd;
 	}
 
-	public void setLastUpdateTime(String lastUpdateTime){
+	public void setLastUpdateTime(String lastUpdateTime) {
 		this.lastUpdateTime = lastUpdateTime;
 	}
 
-	public String getLastUpdateTime(){
+	public String getLastUpdateTime() {
 		return this.lastUpdateTime;
 	}
 
-	public void setLastUpdateTimeStart(String lastUpdateTimeStart){
+	public void setLastUpdateTimeStart(String lastUpdateTimeStart) {
 		this.lastUpdateTimeStart = lastUpdateTimeStart;
 	}
 
-	public String getLastUpdateTimeStart(){
+	public String getLastUpdateTimeStart() {
 		return this.lastUpdateTimeStart;
 	}
-	public void setLastUpdateTimeEnd(String lastUpdateTimeEnd){
+
+	public void setLastUpdateTimeEnd(String lastUpdateTimeEnd) {
 		this.lastUpdateTimeEnd = lastUpdateTimeEnd;
 	}
 
-	public String getLastUpdateTimeEnd(){
+	public String getLastUpdateTimeEnd() {
 		return this.lastUpdateTimeEnd;
 	}
 
-	public void setFolderType(Integer folderType){
+	public void setFolderType(Integer folderType) {
 		this.folderType = folderType;
 	}
 
-	public Integer getFolderType(){
+	public Integer getFolderType() {
 		return this.folderType;
 	}
 
-	public void setFileCateory(Integer fileCateory){
-		this.fileCateory = fileCateory;
+	public void setFileCategory(Integer fileCategory) {
+		this.fileCategory = fileCategory;
 	}
 
-	public Integer getFileCateory(){
-		return this.fileCateory;
+	public Integer getFileCategory() {
+		return this.fileCategory;
 	}
 
-	public void setFileType(Integer fileType){
+	public void setFileType(Integer fileType) {
 		this.fileType = fileType;
 	}
 
-	public Integer getFileType(){
+	public Integer getFileType() {
 		return this.fileType;
 	}
 
-	public void setStatus(Integer status){
+	public void setStatus(Integer status) {
 		this.status = status;
 	}
 
-	public Integer getStatus(){
+	public Integer getStatus() {
 		return this.status;
 	}
 
-	public void setRecoveryTime(String recoveryTime){
+	public void setRecoveryTime(String recoveryTime) {
 		this.recoveryTime = recoveryTime;
 	}
 
-	public String getRecoveryTime(){
+	public String getRecoveryTime() {
 		return this.recoveryTime;
 	}
 
-	public void setRecoveryTimeStart(String recoveryTimeStart){
+	public void setRecoveryTimeStart(String recoveryTimeStart) {
 		this.recoveryTimeStart = recoveryTimeStart;
 	}
 
-	public String getRecoveryTimeStart(){
+	public String getRecoveryTimeStart() {
 		return this.recoveryTimeStart;
 	}
-	public void setRecoveryTimeEnd(String recoveryTimeEnd){
+
+	public void setRecoveryTimeEnd(String recoveryTimeEnd) {
 		this.recoveryTimeEnd = recoveryTimeEnd;
 	}
 
-	public String getRecoveryTimeEnd(){
+	public String getRecoveryTimeEnd() {
 		return this.recoveryTimeEnd;
 	}
 
-	public void setDelFlag(Integer delFlag){
+	public void setDelFlag(Integer delFlag) {
 		this.delFlag = delFlag;
 	}
 
-	public Integer getDelFlag(){
+	public Integer getDelFlag() {
 		return this.delFlag;
 	}
 
+	public String[] getFileIdArray() {
+		return fileIdArray;
+	}
+
+	public void setFileIdArray(String[] fileIdArray) {
+		this.fileIdArray = fileIdArray;
+	}
+
+	public String[] getExcludeFileIdArray() {
+		return excludeFileIdArray;
+	}
+
+	public void setExcludeFileIdArray(String[] excludeFileIdArray) {
+		this.excludeFileIdArray = excludeFileIdArray;
+	}
+
+	public String[] getFilePidArray() {
+		return filePidArray;
+	}
+
+	public void setFilePidArray(String[] filePidArray) {
+		this.filePidArray = filePidArray;
+	}
 }

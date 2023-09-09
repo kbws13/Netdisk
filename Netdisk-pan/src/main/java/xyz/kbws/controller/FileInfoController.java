@@ -28,7 +28,7 @@ import javax.servlet.http.HttpSession;
  * 文件信息 Controller
  */
 @RestController("fileInfoController")
-@RequestMapping("file")
+@RequestMapping("/file")
 public class FileInfoController extends CommonFileController{
 
 	@Resource
@@ -37,11 +37,11 @@ public class FileInfoController extends CommonFileController{
 	 * 根据条件分页查询
 	 */
 	@RequestMapping("/loadDataList")
-	@GlobalInterceptor
+	@GlobalInterceptor(checkParams = true)
 	public ResponseVO loadDataList(HttpSession session, FileInfoQuery query, String category){
 		FileCategoryEnum categoryEnum = FileCategoryEnum.getByCode(category);
 		if (categoryEnum != null){
-			query.setFileCateory(categoryEnum.getCategory());
+			query.setFileCategory(categoryEnum.getCategory());
 		}
 		query.setUserId(getUserInfoFromSession(session).getUserId());
 		query.setOrderBy("last_update_time desc");
@@ -84,16 +84,13 @@ public class FileInfoController extends CommonFileController{
 	 * @param imageName 图片名字
 	 * @return
 	 */
-	@RequestMapping("getImage/{imageFolder}/{imageName}")
-	@GlobalInterceptor(checkParams = true)
-	public void getImage(HttpServletResponse response, @PathVariable("imageFolder") String imageFolder,
-							   @PathVariable("imageName") String imageName){
-		super.getPic(response, imageFolder, imageName);
+	@RequestMapping("/getImage/{imageFolder}/{imageName}")
+	public void getPic(HttpServletResponse response, @PathVariable("imageFolder") String imageFolder, @PathVariable("imageName") String imageName) {
+		super.getImage(response, imageFolder, imageName);
 	}
 
-	@RequestMapping("ts/getVideoInfo/{fileId}")
-	@GlobalInterceptor(checkParams = true)
-	public void getVideo(HttpServletResponse response, HttpSession session, @PathVariable("fileId") String fileId){
+	@RequestMapping("/ts/getVideoInfo/{fileId}")
+	public void getVideoInfo(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		super.getFile(response, fileId, webUserDto.getUserId());
 	}
