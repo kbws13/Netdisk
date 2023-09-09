@@ -475,4 +475,35 @@ public class FileInfoServiceImpl implements FileInfoService {
 		//删除index.ts
 		new File(tsPath).delete();
 	}
+
+	@Override
+	public FileInfo newFolder(String filePid, String userId, String folderName) {
+		checkFileName(filePid, userId, folderName, FileFolderTypeEnum.FOLDER.getType());
+		Date curDate = new Date();
+		FileInfo fileInfo = new FileInfo();
+		fileInfo.setFileId(StringTools.getRandomString(Constants.LENGTH_10));
+		fileInfo.setUserId(userId);
+		fileInfo.setFilePid(filePid);
+		fileInfo.setFileName(folderName);
+		fileInfo.setFolderType(FileFolderTypeEnum.FOLDER.getType());
+		fileInfo.setCreateTime(curDate);
+		fileInfo.setLastUpdateTime(curDate);
+		fileInfo.setStatus(FileStatusEnum.USING.getStatus());
+		fileInfo.setDelFlag(FileDelFlagEnum.USING.getFlag());
+		this.fileInfoMapper.insert(fileInfo);
+		return fileInfo;
+	}
+
+	private void checkFileName(String filePid, String userId, String fileName, Integer folderType){
+		FileInfoQuery fileInfoQuery = new FileInfoQuery();
+		fileInfoQuery.setFolderType(folderType);
+		fileInfoQuery.setFileName(fileName);
+		fileInfoQuery.setFilePid(filePid);
+		fileInfoQuery.setUserId(userId);
+
+		Integer count = this.fileInfoMapper.selectCount(fileInfoQuery);
+		if (count > 0){
+			throw new BusinessException("此目录下已经存在同名文件，请修改名称");
+		}
+	}
 }

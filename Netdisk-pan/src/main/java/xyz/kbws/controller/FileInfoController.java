@@ -85,19 +85,40 @@ public class FileInfoController extends CommonFileController{
 	 * @return
 	 */
 	@RequestMapping("/getImage/{imageFolder}/{imageName}")
+	@GlobalInterceptor(checkParams = true)
 	public void getPic(HttpServletResponse response, @PathVariable("imageFolder") String imageFolder, @PathVariable("imageName") String imageName) {
 		super.getImage(response, imageFolder, imageName);
 	}
 
 	@RequestMapping("/ts/getVideoInfo/{fileId}")
+	@GlobalInterceptor(checkParams = true)
 	public void getVideoInfo(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		super.getFile(response, fileId, webUserDto.getUserId());
 	}
 
 	@RequestMapping("/getFile/{fileId}")
+	@GlobalInterceptor(checkParams = true)
 	public void getFile(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		super.getFile(response, fileId, webUserDto.getUserId());
+	}
+
+	@RequestMapping("/newFoloder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO newFolder(HttpSession session,
+								@VerifyParam(required = true) String filePid,
+								@VerifyParam(required = true) String fileName){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		FileInfo fileInfo = fileInfoService.newFolder(filePid, webUserDto.getUserId(), fileName);
+		return getSuccessResponseVO(fileInfo);
+	}
+
+	@RequestMapping("/getFolderInfo")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO getFolderInfo(HttpSession session,
+									@VerifyParam(required = true) String path){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		return super.getFolderInfo(path, webUserDto.getUserId());
 	}
 }

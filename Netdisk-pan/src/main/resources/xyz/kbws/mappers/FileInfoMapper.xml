@@ -161,6 +161,9 @@
 			<if test="query.queryExpire!=null and query.queryExpire">
 				<![CDATA[  and recovery_time< date_sub(now(),interval 10 day)]]>
 			</if>
+			<if test="query.fileIdArray!=null and query.fileIdArray.length>0">
+				and file_id in (<foreach collection="query.fileIdArray" item="item" separator=",">#{item}</foreach>)
+			</if>
 		</where>
 	</sql>
 

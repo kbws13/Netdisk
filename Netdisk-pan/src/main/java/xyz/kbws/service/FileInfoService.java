@@ -77,4 +77,13 @@ public interface FileInfoService {
 	 */
 	UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file,
 							   String fileName, String filePid, String fileMd5, Integer chunkIndex, Integer chunks);
+
+	/**
+	 * 新建目录
+	 * @param filePid 父级id
+	 * @param userId 用户id
+	 * @param folderName 文件夹名
+	 * @return
+	 */
+	FileInfo newFolder(String filePid, String userId, String folderName);
 }
