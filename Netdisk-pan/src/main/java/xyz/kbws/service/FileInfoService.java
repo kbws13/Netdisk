@@ -95,4 +95,12 @@ public interface FileInfoService {
 	 * @return
 	 */
 	FileInfo rename(String fileId, String userId, String fileName);
+
+	/**
+	 * 修改文件目录、移动文件
+	 * @param fileIds 需要移动的文件id列表
+	 * @param filePid 父级目录id
+	 * @param userId 用户id
+	 */
+	void changeFileFolder(String fileIds, String filePid, String userId);
 }

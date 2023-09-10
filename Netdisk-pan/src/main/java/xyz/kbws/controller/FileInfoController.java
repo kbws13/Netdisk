@@ -10,6 +10,7 @@ import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.dto.UploadResultDto;
 import xyz.kbws.entity.enums.FileCategoryEnum;
 import xyz.kbws.entity.enums.FileDelFlagEnum;
+import xyz.kbws.entity.enums.FileFolderTypeEnum;
 import xyz.kbws.entity.query.FileInfoQuery;
 import xyz.kbws.entity.po.FileInfo;
 import xyz.kbws.entity.vo.FileInfoVO;
@@ -19,6 +20,8 @@ import xyz.kbws.service.FileInfoService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xyz.kbws.utils.CopyTools;
+import xyz.kbws.utils.StringTools;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -111,7 +114,7 @@ public class FileInfoController extends CommonFileController{
 								@VerifyParam(required = true) String fileName){
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		FileInfo fileInfo = fileInfoService.newFolder(filePid, webUserDto.getUserId(), fileName);
-		return getSuccessResponseVO(fileInfo);
+		return getSuccessResponseVO(CopyTools.copy(fileInfo, FileInfoVO.class));
 	}
 
 	@RequestMapping("/getFolderInfo")
@@ -129,6 +132,45 @@ public class FileInfoController extends CommonFileController{
 							 @VerifyParam(required = true) String fileName){
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
 		FileInfo rename = fileInfoService.rename(fileId, webUserDto.getUserId(), fileName);
-		return getSuccessResponseVO(rename);
+		return getSuccessResponseVO(CopyTools.copy(rename, FileInfoVO.class));
+	}
+
+	@RequestMapping("/loadAllFolder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO loadAllFolder(HttpSession session,
+							 @VerifyParam(required = true) String filePid,
+							 String currentFileIds){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		FileInfoQuery fileInfoQuery = new FileInfoQuery();
+		fileInfoQuery.setUserId(webUserDto.getUserId());
+		fileInfoQuery.setFilePid(filePid);
+		fileInfoQuery.setFolderType(FileFolderTypeEnum.FOLDER.getType());
+		if (!StringTools.isEmpty(currentFileIds)){
+			fileInfoQuery.setExcludeFileIdArray(currentFileIds.split(","));
+		}
+		fileInfoQuery.setDelFlag(FileDelFlagEnum.USING.getFlag());
+		fileInfoQuery.setOrderBy("create_time desc");
+		List<FileInfo> fileInfoList = fileInfoService.findListByParam(fileInfoQuery);
+		return getSuccessResponseVO(CopyTools.copyList(fileInfoList, FileInfoVO.class));
+	}
+
+	@RequestMapping("/changeFileFolder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO changeFileFolder(HttpSession session,
+							 @VerifyParam(required = true) String fileIds,
+							 @VerifyParam(required = true) String filePid){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		fileInfoService.changeFileFolder(fileIds, filePid, webUserDto.getUserId());
+		return getSuccessResponseVO(null);
+	}
+
+	@RequestMapping("/createDownloadUrl/{fileId}")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO createDownloadUrl(HttpSession session,
+									   @VerifyParam(required = true)
+									   @PathVariable("fileId") String fileId){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+
+		return getSuccessResponseVO(null);
 	}
 }

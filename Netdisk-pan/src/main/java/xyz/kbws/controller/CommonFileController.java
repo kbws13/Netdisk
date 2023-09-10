@@ -7,9 +7,11 @@ import xyz.kbws.entity.config.AppConfig;
 import xyz.kbws.entity.constants.Constants;
 import xyz.kbws.entity.enums.FileCategoryEnum;
 import xyz.kbws.entity.enums.FileFolderTypeEnum;
+import xyz.kbws.entity.enums.ResponseCodeEnum;
 import xyz.kbws.entity.po.FileInfo;
 import xyz.kbws.entity.query.FileInfoQuery;
 import xyz.kbws.entity.vo.ResponseVO;
+import xyz.kbws.exception.BusinessException;
 import xyz.kbws.service.FileInfoService;
 import xyz.kbws.utils.StringTools;
 
@@ -91,7 +93,7 @@ public class CommonFileController extends ABaseController{
         readFile(response, filePath);
     }
 
-    public ResponseVO getFolderInfo(String path, String userId){
+    protected ResponseVO getFolderInfo(String path, String userId){
         String[] pathArray = path.split("/");
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setUserId(userId);
@@ -102,4 +104,17 @@ public class CommonFileController extends ABaseController{
         List<FileInfo> fileInfoList = fileInfoService.findListByParam(fileInfoQuery);
         return getSuccessResponseVO(fileInfoList);
     }
+
+    protected ResponseVO createDownloadUrl(String fileId, String userId){
+        FileInfo fileInfo = fileInfoService.getFileInfoByFileIdAndUserId(fileId, userId);
+        if (fileInfo == null){
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        if (FileFolderTypeEnum.FOLDER.getType().equals(fileInfo.getFolderType())){
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String code = StringTools.getRandomString(Constants.LENGTH_50);
+        return null;
+    }
+
 }

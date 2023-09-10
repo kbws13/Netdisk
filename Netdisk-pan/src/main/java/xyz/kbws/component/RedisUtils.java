@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.awt.*;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 

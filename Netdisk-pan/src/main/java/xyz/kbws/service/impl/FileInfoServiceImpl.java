@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.RandomAccess;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -538,5 +541,44 @@ public class FileInfoServiceImpl implements FileInfoService {
 		fileInfo.setLastUpdateTime(curDate);
 
 		return fileInfo;
+	}
+
+	@Override
+	public void changeFileFolder(String fileIds, String filePid, String userId) {
+		if (fileIds.equals(filePid)){
+			throw new BusinessException(ResponseCodeEnum.CODE_600);
+		}
+		if (!Constants.ZERO_STR.equals(filePid)){
+			FileInfo fileInfo = fileInfoService.getFileInfoByFileIdAndUserId(filePid, userId);
+			if (fileInfo == null || !FileDelFlagEnum.USING.getFlag().equals(fileInfo.getDelFlag())){
+				throw new BusinessException(ResponseCodeEnum.CODE_600);
+			}
+		}
+		String[] fileIdArray = fileIds.split(",");
+		FileInfoQuery query = new FileInfoQuery();
+		query.setFilePid(filePid);
+		query.setUserId(userId);
+		List<FileInfo> dbFileList = fileInfoService.findListByParam(query);
+
+		Map<String, FileInfo> dbFileMap = dbFileList.stream().collect(Collectors.toMap(FileInfo::getFileName,
+				Function.identity(), (file1, file2)->file2));
+		//查询选中的文件
+		query = new FileInfoQuery();
+		query.setUserId(userId);
+		query.setFileIdArray(fileIdArray);
+		List<FileInfo> selectFileList = this.findListByParam(query);
+
+		//讲所选文件重命名
+		for (FileInfo item : selectFileList){
+			FileInfo rootFileInfo = dbFileMap.get(item.getFileName());
+			//文件名已存在，重命名被还原的文件名
+			FileInfo updateInfo = new FileInfo();
+			if (rootFileInfo != null){
+				String fileName = StringTools.rename(item.getFileName());
+				updateInfo.setFileName(fileName);
+			}
+			updateInfo.setFilePid(filePid);
+			this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, item.getFileId(), userId);
+		}
 	}
 }
