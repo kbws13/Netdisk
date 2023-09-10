@@ -21,10 +21,12 @@ public class Constants {
     public static final Long MB = 1024*1024L;
     public static final String REDIS_KEY_SYS_SETTING = "netdisk:syssetting:";
     public static final String REDIS_KEY_USER_SPACE_USE = "netdisk:user:spaceuse:";
+    public static final String REDIS_KEY_DOWNLOAD = "netdisk:download:";
     public static final String SESSION_KEY = "session_key";
     public static final Integer REDIS_KEY_EXPIRES_ONE_MIN = 60;
     public static final Integer REDIS_KEY_EXPIRES_DAY = REDIS_KEY_EXPIRES_ONE_MIN * 60 * 24;
     public static final Integer REDIS_KEY_EXPIRES_OEN_HOUR = REDIS_KEY_EXPIRES_ONE_MIN * 60;
+    public static final Integer REDIS_KEY_EXPIRES_FIVE_MIN = REDIS_KEY_EXPIRES_ONE_MIN * 5;
     public static final String  REDIS_KEY_USER_FILE_TEMP_SIZE = "netdisk:user:file:temp:";
     public static final String  VIEW_OBJ_RESULT_KEY = "result";
     public static final String TS_NAME = "index.ts";

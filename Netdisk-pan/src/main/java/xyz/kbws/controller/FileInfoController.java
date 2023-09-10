@@ -24,6 +24,7 @@ import xyz.kbws.utils.CopyTools;
 import xyz.kbws.utils.StringTools;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -170,7 +171,13 @@ public class FileInfoController extends CommonFileController{
 									   @VerifyParam(required = true)
 									   @PathVariable("fileId") String fileId){
 		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		return super.createDownloadUrl(fileId, webUserDto.getUserId());
+	}
 
-		return getSuccessResponseVO(null);
+	@RequestMapping("/download/{code}")
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
+	public void download(HttpServletRequest request, HttpServletResponse response,
+							   @VerifyParam(required = true) @PathVariable("code") String code) throws Exception {
+		super.download(request,response, code);
 	}
 }

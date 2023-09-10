@@ -3,8 +3,10 @@ package xyz.kbws.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xyz.kbws.component.RedisComponent;
 import xyz.kbws.entity.config.AppConfig;
 import xyz.kbws.entity.constants.Constants;
+import xyz.kbws.entity.dto.DownloadFileDto;
 import xyz.kbws.entity.enums.FileCategoryEnum;
 import xyz.kbws.entity.enums.FileFolderTypeEnum;
 import xyz.kbws.entity.enums.ResponseCodeEnum;
@@ -16,8 +18,10 @@ import xyz.kbws.service.FileInfoService;
 import xyz.kbws.utils.StringTools;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.List;
 
 public class CommonFileController extends ABaseController{
@@ -29,6 +33,9 @@ public class CommonFileController extends ABaseController{
 
     @Resource
     private FileInfoService fileInfoService;
+
+    @Resource
+    private RedisComponent redisComponent;
 
     public void getImage(HttpServletResponse response, String imageFolder, String imageName) {
         if (StringTools.isEmpty(imageFolder) || StringUtils.isBlank(imageName)) {
@@ -114,7 +121,32 @@ public class CommonFileController extends ABaseController{
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
         String code = StringTools.getRandomString(Constants.LENGTH_50);
-        return null;
+
+        DownloadFileDto fileDto = new DownloadFileDto();
+        fileDto.setDownloadCode(code);
+        fileDto.setFileName(fileInfo.getFileName());
+        fileDto.setFilePath(fileInfo.getFilePath());
+        redisComponent.saveDownloadCode(code, fileDto);
+
+        return getSuccessResponseVO(code);
+    }
+
+    protected void download(HttpServletRequest request, HttpServletResponse response, String code)throws Exception{
+        DownloadFileDto downloadFileDto = redisComponent.getDownloadCode(code);
+        if (downloadFileDto == null){
+            return;
+        }
+        String filePath = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + downloadFileDto.getFilePath();
+        String fileName = downloadFileDto.getFileName();
+        response.setContentType("application/x-msdownload; charset=UTF-8");
+        if (request.getHeader("User-Agent").toLowerCase().indexOf("msie") > 0){
+            //IE浏览器
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+        }else {
+            fileName = new String(fileName.getBytes("UTF-8"),"ISO8859-1");
+        }
+        response.setHeader("Content-Disposition","attachment;filename=\"" + fileName + "\"");
+        readFile(response,filePath);
     }
 
 }

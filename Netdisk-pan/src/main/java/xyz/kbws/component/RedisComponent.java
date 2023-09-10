@@ -1,7 +1,9 @@
 package xyz.kbws.component;
 
+import com.sun.org.apache.bcel.internal.generic.ACONST_NULL;
 import org.springframework.stereotype.Component;
 import xyz.kbws.entity.constants.Constants;
+import xyz.kbws.entity.dto.DownloadFileDto;
 import xyz.kbws.entity.dto.SysSettingsDto;
 import xyz.kbws.entity.dto.UserSpaceDto;
 import xyz.kbws.entity.po.FileInfo;
@@ -76,5 +78,13 @@ public class RedisComponent {
             return (Long) sizeObj;
         }
         return 0L;
+    }
+
+    public void saveDownloadCode(String code, DownloadFileDto downloadFileDto){
+        redisUtils.setex(Constants.REDIS_KEY_DOWNLOAD+code,downloadFileDto, Constants.REDIS_KEY_EXPIRES_FIVE_MIN);
+    }
+
+    public DownloadFileDto getDownloadCode(String code){
+        return (DownloadFileDto) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD + code);
     }
 }
