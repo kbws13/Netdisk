@@ -103,4 +103,11 @@ public interface FileInfoService {
 	 * @param userId 用户id
 	 */
 	void changeFileFolder(String fileIds, String filePid, String userId);
+
+	/**
+	 * 移动文件到回收站
+	 * @param userId 用户id
+	 * @param fileIds 文件id
+	 */
+	void removeFile2RecycleBatch(String userId, String fileIds);
 }

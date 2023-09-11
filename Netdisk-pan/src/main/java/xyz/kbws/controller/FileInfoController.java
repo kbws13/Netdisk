@@ -180,4 +180,12 @@ public class FileInfoController extends CommonFileController{
 							   @VerifyParam(required = true) @PathVariable("code") String code) throws Exception {
 		super.download(request,response, code);
 	}
+
+	@RequestMapping("/delFile")
+	@GlobalInterceptor(checkParams = true, checkLogin = false)
+	public ResponseVO delFile(HttpSession session, @VerifyParam(required = true) String fileIds){
+		SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+		fileInfoService.removeFile2RecycleBatch(webUserDto.getUserId(), fileIds);
+		return getSuccessResponseVO(null);
+	}
 }
