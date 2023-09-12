@@ -287,7 +287,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 		//用户空间
 		UserSpaceDto userSpaceDto = new UserSpaceDto();
 		Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
-		userSpaceDto.setUserSpace(useSpace);
+		userSpaceDto.setUseSpace(useSpace);
 		userSpaceDto.setTotalSpace(userInfo.getTotalSpace());
 		redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
 		return sessionWebUserDto;
@@ -353,7 +353,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 		}
 		UserSpaceDto userSpaceDto = new UserSpaceDto();
 		Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
-		userSpaceDto.setUserSpace(useSpace);
+		userSpaceDto.setUseSpace(useSpace);
 		userSpaceDto.setTotalSpace(userSpaceDto.getTotalSpace());
 		redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
 		return sessionWebUserDto;

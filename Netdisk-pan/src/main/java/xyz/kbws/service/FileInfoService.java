@@ -110,4 +110,19 @@ public interface FileInfoService {
 	 * @param fileIds 文件id
 	 */
 	void removeFile2RecycleBatch(String userId, String fileIds);
+
+	/**
+	 * 还原文件
+	 * @param userId
+	 * @param fileIds
+	 */
+	void recoverFileBatch(String userId, String fileIds);
+
+	/**
+	 * 彻底删除文件
+	 * @param userId 用户id
+	 * @param fileIds 文件id
+	 * @param adminOp 是否是管理员
+	 */
+	void delFileBatch(String userId, String fileIds, Boolean adminOp);
 }

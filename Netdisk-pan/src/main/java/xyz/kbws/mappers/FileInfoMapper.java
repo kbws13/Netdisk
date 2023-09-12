@@ -43,10 +43,18 @@ public interface FileInfoMapper<T,P> extends BaseMapper<T,P> {
 									   @Param("bean") T t, @Param("oldStatus") Integer oldStatus);
 
 	/**
-	 * 批量删除
+	 * 批量回收站
 	 */
 	void updateFileDelFlagBatch(@Param("bean")FileInfo fileInfo, @Param("userId") String userId,
 								@Param("filePidList")List<String> filePidList,
 								@Param("fileIdList") List<String> fileIdList,
 								@Param("oldDelFlag") Integer oldDelFlag);
+
+	/**
+	 * 批量删除
+	 */
+	void delFileBatch(@Param("userId") String userId,
+					  @Param("filePidList") List<String> filePidList,
+					  @Param("fileIdList") List<String> fileIdList,
+					  @Param("oldDelFlag") Integer oldDelFlag);
 }

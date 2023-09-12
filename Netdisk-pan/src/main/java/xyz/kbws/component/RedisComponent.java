@@ -37,7 +37,7 @@ public class RedisComponent {
         if (spaceDto == null){
             spaceDto = new UserSpaceDto();
             Long useSpace = fileInfoMapper.selectUseSpace(userId);
-            spaceDto.setUserSpace(useSpace);
+            spaceDto.setUseSpace(useSpace);
             spaceDto.setTotalSpace(getSysSettingDto().getUserInitUseSpace() * Constants.MB);
             saveUserSpaceUse(userId,spaceDto);
         }
