@@ -1,8 +1,11 @@
 package xyz.kbws.utils;
 
 
+import xyz.kbws.entity.enums.DateTimePatternEnum;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,5 +46,15 @@ public class DateUtil {
             e.printStackTrace();
         }
         return new Date();
+    }
+
+    public static Date getAfterDate(Integer day) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, day);
+        return calendar.getTime();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(format(getAfterDate(1), DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern()));
     }
 }

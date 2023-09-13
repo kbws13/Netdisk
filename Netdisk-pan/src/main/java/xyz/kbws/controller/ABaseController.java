@@ -2,6 +2,7 @@ package xyz.kbws.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.kbws.entity.constants.Constants;
+import xyz.kbws.entity.dto.SessionShareDto;
 import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.enums.ResponseCodeEnum;
 import xyz.kbws.entity.vo.PaginationResultVO;
@@ -109,5 +110,10 @@ public class ABaseController {
     protected SessionWebUserDto getUserInfoFromSession(HttpSession session){
         SessionWebUserDto sessionWebUserDto = (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
         return sessionWebUserDto;
+    }
+
+    protected SessionShareDto getSessionShareFromSession(HttpSession session, String shareId) {
+        SessionShareDto sessionShareDto = (SessionShareDto) session.getAttribute(Constants.SESSION_SHARE_KEY + shareId);
+        return sessionShareDto;
     }
 }

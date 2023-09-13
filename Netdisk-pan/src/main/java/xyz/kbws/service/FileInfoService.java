@@ -2,6 +2,7 @@ package xyz.kbws.service;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.kbws.entity.dto.SessionWebUserDto;
 import xyz.kbws.entity.dto.UploadResultDto;
@@ -125,4 +126,12 @@ public interface FileInfoService {
 	 * @param adminOp 是否是管理员
 	 */
 	void delFileBatch(String userId, String fileIds, Boolean adminOp);
+
+	void checkRootFilePid(String rootFilePid, String userId, String fileId);
+
+	void saveShare(String shareRootFilePid, String shareFileIds, String myFolderId, String shareUserId, String cureentUserId);
+
+	Long getUserUseSpace(@Param("userId") String userId);
+
+	void deleteFileByUserId(@Param("userId") String userId);
 }
