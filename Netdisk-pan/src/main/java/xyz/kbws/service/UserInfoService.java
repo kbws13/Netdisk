@@ -142,4 +142,14 @@ public interface UserInfoService {
 	 * QQ登录
 	 */
 	SessionWebUserDto qqLogin(String code);
+
+	/**
+	 * 更改用户状态
+	 */
+	void updateUserStatus(String userId, Integer status);
+
+	/**
+	 * 更改用户使用空间
+	 */
+	void changeUserSpace(String userId, Integer changeSpace);
 }

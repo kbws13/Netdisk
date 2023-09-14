@@ -181,7 +181,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			MimeMessageHelper helper = new MimeMessageHelper(message, true);
 			helper.setFrom(appConfig.getSendUserName());
 			helper.setTo(toEmail);
-			SysSettingsDto sysSettingDto = redisComponent.getSysSettingDto();
+			SysSettingsDto sysSettingDto = redisComponent.getSysSettingsDto();
 			helper.setSubject(sysSettingDto.getRegisterMailTitle());
 			helper.setText(String.format(sysSettingDto.getRegisterEmailContent(),code));
 			helper.setSentDate(new Date());

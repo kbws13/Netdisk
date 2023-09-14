@@ -36,6 +36,7 @@ import xyz.kbws.exception.BusinessException;
 import xyz.kbws.mappers.FileInfoMapper;
 import xyz.kbws.mappers.UserInfoMapper;
 import xyz.kbws.service.EmailCodeService;
+import xyz.kbws.service.FileInfoService;
 import xyz.kbws.service.UserInfoService;
 import xyz.kbws.utils.JsonUtils;
 import xyz.kbws.utils.OKHttpUtils;
@@ -60,6 +61,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 	private RedisComponent redisComponent;
 	@Resource
 	private AppConfig appConfig;
+	@Resource
+	private FileInfoService fileInfoService;
 
 	/**
 	 * 根据条件查询列表
@@ -258,7 +261,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 		userInfo.setJoinTime(new Date());
 		userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
 		userInfo.setUseSpace(0L);
-		SysSettingsDto sysSettingsDto = redisComponent.getSysSettingDto();
+		SysSettingsDto sysSettingsDto = redisComponent.getSysSettingsDto();
 		userInfo.setTotalSpace(sysSettingsDto.getUserInitUseSpace()*Constants.MB);
 		this.userInfoMapper.insert(userInfo);
 	}
@@ -333,7 +336,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 			userInfo.setLastLoginTime(curDate);
 			userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
 			userInfo.setUseSpace(0L);
-			userInfo.setTotalSpace(redisComponent.getSysSettingDto().getUserInitUseSpace() * Constants.MB);
+			userInfo.setTotalSpace(redisComponent.getSysSettingsDto().getUserInitUseSpace() * Constants.MB);
 			this.userInfoMapper.insert(userInfo);
 			userInfo = userInfoMapper.selectByQqOpenId(openId);
 		}else {
@@ -423,5 +426,25 @@ public class UserInfoServiceImpl implements UserInfoService {
 			return qqInfoDto;
 		}
 		throw new BusinessException("调用QQ接口获取用户信息异常");
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateUserStatus(String userId, Integer status) {
+		UserInfo userInfo = new UserInfo();
+		userInfo.setStatus(status);
+		if (UserStatusEnum.DISABLE.getStatus().equals(status)) {
+			userInfo.setUseSpace(0L);
+			fileInfoService.deleteFileByUserId(userId);
+		}
+		userInfoMapper.updateByUserId(userInfo, userId);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void changeUserSpace(String userId, Integer changeSpace) {
+		Long space = changeSpace * Constants.MB;
+		this.userInfoMapper.updateUserSpace(userId, null, space);
+		redisComponent.resetUserSpaceUse(userId);
 	}
 }
