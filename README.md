@@ -38,3 +38,27 @@ SpringBoot+Mybatis+MySQL+Redis+ffmpeg
 学习到如何从功能点去设计数据库，在数据库设计的时候考虑到后续的扩展，比如文件数据的分表处理，可以根据用户`id hash`取模的方式对文件数据进行分表处理
 
 通过`Spring`的核心`AOP`来实现与事务的解耦
+
+
+## Project Description
+A network disk project that imitates Baidu Cloud Disk for C-end users, including user registration, QQ quick login, file upload, shard upload, breakpoint interrupt, second transfer, online file preview, including online preview of text, images, videos, audio, Excel, Word, PDF, and other files, and file sharing functions
+## Technical Selection
+SpringBoot+Mybatis+MySQL+Redis+ffmpeg
+## Responsible for content
+1. User registration, login, QQ quick login, send email verification code, and retrieve password
+2. File sharding upload, second transfer, new directory creation, preview, file renaming, file movement, file sharing, deletion, download, and other functions
+3. File sharing list, cancel sharing
+4. Recycle Bin function, restore files, completely delete
+5. Setting module
+1. The super administrator role queries all files uploaded by users, allowing them to be downloaded and deleted
+2. Super administrators can manage users, allocate space to users, disable or enable users
+3. Super administrators can set up the system, set email templates, and set the size of user registration initialization space
+6. Users can preview and download files shared by others through sharing links and sharing codes, and also save the files to their own online drive
+## Project difficulties
+1. File sharding upload, achieving file transfer in seconds through file 'MD5'. After the file is sharded and uploaded, asynchronous merging processing is performed on the file. The video file is called 'ffmpeg' to generate a video thumbnail, and the file is sharded into a 'ts' file
+2. Real time calculation of space usage during user upload process through Redis cache
+3. Multilevel directory linear display, using recursive queries to query all parent directories of the directory
+4. When users upload files, files with duplicate names in the same level directory will be automatically renamed. When files are moved, files with the same name will be automatically renamed
+## Project Harvest
+Familiar with third-party login and access processes, such as QQ login.
+Proficient in using 'SpringBoot', using the annotation method of 'AOP' in 'Spring' to achieve different interface permissions that do not listen to, such as the difference in permissions between regular users and super administrators. At the same time, using reflection from 'AOP' and 'Java' to achieve backend parameter verification
